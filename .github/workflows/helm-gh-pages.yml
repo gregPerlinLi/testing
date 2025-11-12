@@ -59,15 +59,21 @@ jobs:
           printf "%s" "$HELM_GPG_PRIVATE_KEY" | gpg --batch --import
           gpg --list-secret-keys --keyid-format=long
           KEY_ID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec/{print $5; exit}')
+          KEY_UID=$(gpg --list-secret-keys --with-colons | awk -F: '/^uid:/{print $10; exit}')
           echo "KEY_ID=$KEY_ID" >> "$GITHUB_ENV"
-          # Create pubring.gpg for Helm (Helm defaults to this keyring path)
+          echo "KEY_UID=$KEY_UID" >> "$GITHUB_ENV"
+          # Create keyrings for Helm (expects pubring.gpg and secring.gpg)
           gpg --export > ~/.gnupg/pubring.gpg
+          gpg --export-secret-keys > ~/.gnupg/secring.gpg
+          # Prepare gpg config
           echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
           echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
           gpgconf --kill gpg-agent || true
-          # Warm up gpg-agent cache if passphrase is provided
+          # Optional: write passphrase file for Helm if provided
           if [ -n "${HELM_GPG_PASSPHRASE:-}" ]; then
-            echo test | gpg --batch --yes --pinentry-mode loopback --passphrase "$HELM_GPG_PASSPHRASE" -u "$KEY_ID" -s >/dev/null 2>&1 || true
+            PASSFILE="$RUNNER_TEMP/helm-passphrase"
+            printf "%s" "$HELM_GPG_PASSPHRASE" > "$PASSFILE"
+            echo "PASSFILE=$PASSFILE" >> "$GITHUB_ENV"
           fi
 
       - name: Package charts and build index
@@ -92,9 +98,14 @@ jobs:
               echo "Packaging $chart_dir"
               helm dependency build "$chart_dir" || true
               helm lint "$chart_dir" || true
-              if [ -n "${KEY_ID:-}" ]; then
-                echo "Signing with GPG key $KEY_ID"
-                helm package "$chart_dir" --destination repo --sign --key "$KEY_ID" --keyring ~/.gnupg/pubring.gpg
+              if [ -n "${KEY_UID:-${KEY_ID:-}}" ]; then
+                KEY_FOR_HELM="${KEY_UID:-$KEY_ID}"
+                echo "Signing with GPG key $KEY_FOR_HELM"
+                if [ -n "${PASSFILE:-}" ]; then
+                  helm package "$chart_dir" --destination repo --sign --key "$KEY_FOR_HELM" --keyring ~/.gnupg/pubring.gpg --passphrase-file "$PASSFILE"
+                else
+                  helm package "$chart_dir" --destination repo --sign --key "$KEY_FOR_HELM" --keyring ~/.gnupg/pubring.gpg
+                fi
               else
                 helm package "$chart_dir" --destination repo
               fi
