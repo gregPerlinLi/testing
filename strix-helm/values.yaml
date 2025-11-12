@@ -1,0 +1,145 @@
+# Default values for strix
+replicaCount: 1
+
+image:
+  registry: docker.io
+  repository: usestrix/strix
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+
+# Sandbox Docker image (Kali Linux based)
+sandboxImage:
+  registry: docker.io
+  repository: usestrix/strix-sandbox
+  tag: "latest"
+  pullPolicy: IfNotPresent
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  name: ""
+
+podAnnotations: {}
+
+podSecurityContext:
+  fsGroup: 1000
+
+securityContext:
+  capabilities:
+    drop:
+    - ALL
+  readOnlyRootFilesystem: false
+  runAsNonRoot: true
+  runAsUser: 1000
+
+# Strix Configuration
+strix:
+  # LLM Configuration
+  llm:
+    # Provider and model (e.g., "openai/gpt-4", "anthropic/claude-sonnet-3-5")
+    provider: "openai/gpt-4"
+    # API Key - should be provided via secret
+    apiKey: ""
+    # Optional: Custom API base URL (for local models like Ollama)
+    apiBase: ""
+  
+  # Optional: Perplexity API for search capabilities
+  perplexity:
+    apiKey: ""
+  
+  # Working mode
+  nonInteractive: true
+  
+  # Target for security testing (can be overridden at runtime)
+  target: ""
+  
+  # Custom instructions
+  instructions: ""
+
+# Docker-in-Docker configuration for sandbox
+dind:
+  enabled: true
+  # Use Docker-in-Docker for isolated sandbox environment
+  image:
+    repository: docker
+    tag: "24-dind"
+    pullPolicy: IfNotPresent
+  
+  # Resources for DinD container
+  resources:
+    limits:
+      cpu: 2000m
+      memory: 4Gi
+    requests:
+      cpu: 1000m
+      memory: 2Gi
+  
+  # Security context for DinD
+  securityContext:
+    privileged: true
+
+service:
+  type: ClusterIP
+  port: 8080
+  targetPort: 8080
+
+persistence:
+  enabled: true
+  # storageClass: ""
+  accessMode: ReadWriteOnce
+  size: 10Gi
+  # existingClaim: ""
+  mountPath: /workspace/agent_runs
+
+resources:
+  limits:
+    cpu: 2000m
+    memory: 4Gi
+  requests:
+    cpu: 500m
+    memory: 1Gi
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity rules
+affinity: {}
+
+# Liveness and readiness probes
+livenessProbe:
+  enabled: false
+  # httpGet:
+  #   path: /health
+  #   port: http
+  # initialDelaySeconds: 30
+  # periodSeconds: 10
+
+readinessProbe:
+  enabled: false
+  # httpGet:
+  #   path: /ready
+  #   port: http
+  # initialDelaySeconds: 5
+  # periodSeconds: 5
+
+# Additional environment variables
+extraEnv: []
+# - name: DEBUG
+#   value: "true"
+
+# Additional volumes
+extraVolumes: []
+
+# Additional volume mounts
+extraVolumeMounts: []
