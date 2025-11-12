@@ -1,0 +1,17 @@
+{{- if .Values.pdb.enabled }}
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "strix.fullname" . }}
+  labels:
+    {{- include "strix.labels" . | nindent 4 }}
+spec:
+  selector:
+    matchLabels:
+      {{- include "strix.selectorLabels" . | nindent 6 }}
+  {{- if .Values.pdb.minAvailable }}
+  minAvailable: {{ .Values.pdb.minAvailable }}
+  {{- else }}
+  maxUnavailable: {{ .Values.pdb.maxUnavailable | default 1 }}
+  {{- end }}
+{{- end }}

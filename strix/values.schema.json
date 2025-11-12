@@ -1,0 +1,234 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Strix Helm Chart Values Schema",
+  "type": "object",
+  "additionalProperties": true,
+  "properties": {
+    "replicaCount": { "type": "integer", "minimum": 1, "default": 1, "description": "Number of Strix pods" },
+    "image": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "registry": { "type": "string", "default": "docker.io" },
+        "repository": { "type": "string", "default": "usestrix/strix" },
+        "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"], "default": "IfNotPresent" },
+        "tag": { "type": "string", "default": "" }
+      }
+    },
+    "sandboxImage": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "registry": { "type": "string", "default": "docker.io" },
+        "repository": { "type": "string", "default": "usestrix/strix-sandbox" },
+        "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"], "default": "IfNotPresent" },
+        "tag": { "type": "string", "default": "latest" }
+      }
+    },
+    "imagePullSecrets": {
+      "type": "array",
+      "items": { "type": "object", "additionalProperties": true, "properties": { "name": { "type": "string" } } },
+      "default": []
+    },
+    "nameOverride": { "type": "string", "default": "" },
+    "fullnameOverride": { "type": "string", "default": "" },
+    "serviceAccount": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "create": { "type": "boolean", "default": true },
+        "annotations": { "type": "object", "additionalProperties": true, "default": {} },
+        "name": { "type": "string", "default": "" }
+      }
+    },
+    "podAnnotations": { "type": "object", "additionalProperties": true, "default": {} },
+    "podSecurityContext": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": { "fsGroup": { "type": "integer", "default": 1000 } }
+    },
+    "securityContext": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "capabilities": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": { "drop": { "type": "array", "items": { "type": "string" }, "default": ["ALL"] } }
+        },
+        "readOnlyRootFilesystem": { "type": "boolean", "default": false },
+        "runAsNonRoot": { "type": "boolean", "default": true },
+        "runAsUser": { "type": "integer", "default": 1000 }
+      }
+    },
+    "strix": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "llm": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "provider": { "type": "string", "default": "openai/gpt-4o" },
+            "apiKey": { "type": "string", "default": "" },
+            "apiBase": { "type": "string", "default": "https://api.openai.com/v1" }
+          }
+        },
+        "perplexity": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": { "apiKey": { "type": "string", "default": "" } }
+        },
+        "nonInteractive": { "type": "boolean", "default": true },
+        "target": { "type": "string", "default": "" },
+        "instructions": { "type": "string", "default": "" }
+      }
+    },
+    "dind": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "image": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "repository": { "type": "string", "default": "docker" },
+            "tag": { "type": "string", "default": "24-dind" },
+            "pullPolicy": { "type": "string", "enum": ["Always", "IfNotPresent", "Never"], "default": "IfNotPresent" }
+          }
+        },
+        "resources": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "limits": {
+              "type": "object",
+              "additionalProperties": true,
+              "properties": {
+                "cpu": { "type": "string", "default": "2000m" },
+                "memory": { "type": "string", "default": "4Gi" }
+              }
+            },
+            "requests": {
+              "type": "object",
+              "additionalProperties": true,
+              "properties": {
+                "cpu": { "type": "string", "default": "1000m" },
+                "memory": { "type": "string", "default": "2Gi" }
+              }
+            }
+          }
+        },
+        "securityContext": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": { "privileged": { "type": "boolean", "default": true } }
+        }
+      }
+    },
+    "service": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "type": { "type": "string", "enum": ["ClusterIP", "NodePort", "LoadBalancer"], "default": "ClusterIP" },
+        "port": { "type": "integer", "default": 8080 },
+        "targetPort": { "type": "integer", "default": 8080 }
+      }
+    },
+    "ingress": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "className": { "type": "string", "default": "" },
+        "annotations": { "type": "object", "additionalProperties": true, "default": {} },
+        "hosts": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "host": { "type": "string" },
+              "paths": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": true,
+                  "properties": {
+                    "path": { "type": "string", "default": "/" },
+                    "pathType": { "type": "string", "enum": ["Prefix", "Exact", "ImplementationSpecific"], "default": "Prefix" }
+                  }
+                }
+              }
+            }
+          },
+          "default": []
+        },
+        "tls": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": true,
+            "properties": {
+              "hosts": { "type": "array", "items": { "type": "string" }, "default": [] },
+              "secretName": { "type": "string" }
+            }
+          },
+          "default": []
+        }
+      }
+    },
+    "persistence": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean", "default": true },
+        "storageClass": { "type": ["string", "null"], "default": null },
+        "accessMode": { "type": "string", "default": "ReadWriteOnce" },
+        "size": { "type": "string", "default": "10Gi" },
+        "existingClaim": { "type": "string", "default": "" },
+        "mountPath": { "type": "string", "default": "/workspace/agent_runs" }
+      }
+    },
+    "resources": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "limits": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "cpu": { "type": "string", "default": "2000m" },
+            "memory": { "type": "string", "default": "4Gi" }
+          }
+        },
+        "requests": {
+          "type": "object",
+          "additionalProperties": true,
+          "properties": {
+            "cpu": { "type": "string", "default": "500m" },
+            "memory": { "type": "string", "default": "1Gi" }
+          }
+        }
+      }
+    },
+    "nodeSelector": { "type": "object", "additionalProperties": true, "default": {} },
+    "tolerations": { "type": "array", "items": { "type": "object", "additionalProperties": true }, "default": [] },
+    "affinity": { "type": "object", "additionalProperties": true, "default": {} },
+    "livenessProbe": { "type": "object", "additionalProperties": true, "properties": { "enabled": { "type": "boolean", "default": false } } },
+    "readinessProbe": { "type": "object", "additionalProperties": true, "properties": { "enabled": { "type": "boolean", "default": false } } },
+    "extraEnv": { "type": "array", "items": { "type": "object", "additionalProperties": true }, "default": [] },
+    "extraVolumes": { "type": "array", "items": { "type": "object", "additionalProperties": true }, "default": [] },
+    "extraVolumeMounts": { "type": "array", "items": { "type": "object", "additionalProperties": true }, "default": [] },
+    "pdb": {
+      "type": "object",
+      "additionalProperties": true,
+      "properties": {
+        "enabled": { "type": "boolean", "default": false },
+        "minAvailable": { "type": ["integer", "string", "null"], "default": null },
+        "maxUnavailable": { "type": ["integer", "string"], "default": 1 }
+      }
+    }
+  }
+}
