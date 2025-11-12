@@ -224,6 +224,22 @@ strix:
     apiBase: "http://ollama-service:11434"
 ```
 
+## Chart Signing (Provenance)
+
+This chart can be optionally signed in CI and publish provenance files (.prov).
+
+Setup:
+- Generate a GPG key and export the private key (ASCII armored) and passphrase.
+- Add repository secrets: HELM_GPG_PRIVATE_KEY and HELM_GPG_PASSPHRASE.
+
+Verify locally:
+```bash
+# After adding the repo and updating index
+helm verify strix-<version>.tgz --keyring ~/.gnupg/pubring.gpg
+```
+
+Note: The workflow auto-detects the key and runs `helm package --sign`.
+
 ## Upgrading
 
 ```bash
