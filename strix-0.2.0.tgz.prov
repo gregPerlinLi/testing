@@ -1,0 +1,59 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+annotations:
+  artifacthub.io/category: security
+  artifacthub.io/containsSecurityUpdates: "false"
+  artifacthub.io/images: |-
+    - name: strix
+      image: docker.io/usestrix/strix:latest
+    - name: sandbox
+      image: docker.io/usestrix/strix-sandbox:latest
+    - name: dind
+      image: docker:24-dind
+  artifacthub.io/license: Apache-2.0
+  artifacthub.io/links: |
+    - name: homepage
+      url: https://usestrix.com
+    - name: source
+      url: https://github.com/usestrix/strix
+  artifacthub.io/prerelease: "false"
+apiVersion: v2
+appVersion: latest
+description: A Helm chart for deploying Strix AI Security Testing Agent on Kubernetes
+home: https://usestrix.com
+icon: https://usestrix.com/favicon.ico
+keywords:
+- - security
+- - penetration-testing
+- - ai
+- - vulnerability-scanner
+kubeVersion: '>=1.19.0-0'
+maintainers:
+- - email: hello@usestrix.com
+  name: Strix Team
+name: strix
+sources:
+- - https://github.com/usestrix/strix
+type: application
+version: 0.2.0
+
+...
+files:
+  strix-0.2.0.tgz: sha256:84417dfdbbbf34a0b07384ed832a8a3818ee9b2be23536a232e4cefa7e2a04a0
+-----BEGIN PGP SIGNATURE-----
+
+wsFcBAEBCgAQBQJpFIc/CRCoRGaIfi+ZlAAAEu4QAHEJviznmPIXQB9S+eFvpMCZ
+/mFOeEqDkMnpfYrcKbIpSIGZSbFkVmgVCRVA5XtvwO6WES1iLz7FS+X3neKDkV6A
+5CRS0xrxWi6dZS9SWZxoxOv+KivvNi5ulNsSSjfFS2S9BSDEk5dgzFObSQEsxG2b
+3ZNvDStlT/jtiIca+Y53NQRiwebu/sIOpxevqqw2114p2KkgC2dgH5tVcQH5AtbM
+5q1tiPQMXFenCuXcPTUDKG3RAFZfVhT4B3tnvcczBv7rEKgbs18PfblW/S5Vvgwy
+a6jre/SNo15ARbNDtiePo4iJVzxJ3KaMaMS3ZoEYRYJXybVO+6qAf76BdhcRbYIg
+9JSxCWVe+P5HidIuGPx1H8E8tZ51gGWMNcg7ey3JcSIjuXeP+c4VfbmQtfaW6vxF
+BaB3X+45HFQ8o+jiaUSlOOL8q3vsEEBFuzCofJ0A/Q59NGf8bKpFMvFAT3EDnNP4
++8dTmV7XdI4wVSW2FLfDyxjt7mSAIzgs7fogg7v+E3VVIkA+y7lKoQyGu1CiKtq3
+5xHr0VOszKvUoZFwX0scLTMcV4P8C1JPr+3Od4IaGf6iS02z3D7azQB3EJVDJg0k
+0ICdp2XtF5V4qqHTs29+nUJ0+RSAlrx+vInNfKIILhE+R3q0pxX5Zf8tbuYLzYOr
+/Xt/uhYXsE0EkGaANsP/
+=QWaf
+-----END PGP SIGNATURE-----
