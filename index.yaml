@@ -1,0 +1,25 @@
+apiVersion: v1
+entries:
+  strix:
+  - apiVersion: v2
+    appVersion: latest
+    created: "2025-11-12T11:53:53.514274298Z"
+    description: A Helm chart for deploying Strix AI Security Testing Agent on Kubernetes
+    digest: fe598fc26471cc0954e640d8848f9ec9ab055a13ab411d4c66e27990de06347c
+    home: https://usestrix.com
+    keywords:
+    - security
+    - penetration-testing
+    - ai
+    - vulnerability-scanner
+    maintainers:
+    - email: hello@usestrix.com
+      name: Strix Team
+    name: strix
+    sources:
+    - https://github.com/usestrix/strix
+    type: application
+    urls:
+    - https://gregPerlinLi.github.io/charts/strix-0.1.0.tgz
+    version: 0.1.0
+generated: "2025-11-12T11:53:53.5135438Z"
