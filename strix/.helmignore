@@ -1,0 +1,18 @@
+# Common VCS and editor files
+.git/
+.gitignore
+.idea/
+.vscode/
+*.swp
+*.bak
+.DS_Store
+
+# CI
+.github/
+
+# Charts build artifacts
+charts/
+.tmp/
+
+# Tests and local files
+*.tgz
