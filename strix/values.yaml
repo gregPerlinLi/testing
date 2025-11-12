@@ -1,43 +1,67 @@
 # Default values for strix
+# This file documents all configurable parameters for the Strix Helm chart.
+# Tips:
+# - Copy this file and edit to create your own overrides (e.g., custom-values.yaml).
+# - Do not commit secrets; provide via --set or a separate secret management solution.
+# - See README for examples (Ingress, TLS, persistence, resources).
+# Number of Strix pods to run
 replicaCount: 1
 
 image:
+  # Image registry (leave empty to omit registry prefix)
   registry: docker.io
+  # Image repository
   repository: usestrix/strix
+  # Image pull policy: Always | IfNotPresent | Never
   pullPolicy: IfNotPresent
-  # Overrides the image tag whose default is the chart appVersion.
+  # Overrides the image tag (defaults to chart appVersion when empty)
   tag: ""
 
 # Sandbox Docker image (Kali Linux based)
 sandboxImage:
+  # Registry for sandbox image
   registry: docker.io
+  # Repository for sandbox image
   repository: usestrix/strix-sandbox
+  # Tag for sandbox image
   tag: "latest"
+  # Pull policy for sandbox image
   pullPolicy: IfNotPresent
 
+# Secrets for pulling private images, e.g.:
+# - name: my-regcred
 imagePullSecrets: []
+# Override the chart name used in Kubernetes object names (optional)
 nameOverride: ""
+# Override the full release name used in Kubernetes object names (optional)
 fullnameOverride: ""
 
 serviceAccount:
-  # Specifies whether a service account should be created
+  # Create a dedicated ServiceAccount for the pods
   create: true
-  # Annotations to add to the service account
+  # Annotations to add to the ServiceAccount
   annotations: {}
-  # The name of the service account to use.
+  # Name of the ServiceAccount to use. If set and create=true, it will use this name;
+  # if create=false, this must reference an existing ServiceAccount
   name: ""
 
+# Pod annotations merged into metadata.annotations
 podAnnotations: {}
 
 podSecurityContext:
+  # Files created in mounted volumes will be owned by this GID
   fsGroup: 1000
 
 securityContext:
+  # Drop all capabilities for least privilege
   capabilities:
     drop:
     - ALL
+  # Set true if the root filesystem can be mounted read-only
   readOnlyRootFilesystem: false
+  # Enforce running as non-root user
   runAsNonRoot: true
+  # UID for the main process user inside the container
   runAsUser: 1000
 
 # Strix Configuration
@@ -46,34 +70,38 @@ strix:
   llm:
     # Provider and model (e.g., "openai/gpt-4o", "anthropic/claude-sonnet-3-5")
     provider: "openai/gpt-4o"
-    # API Key - should be provided via secret
+    # API Key for the LLM provider
+    # NOTE: Do not commit real keys. The chart creates a Secret from this value.
     apiKey: "xxx"
-    # Optional: Custom API base URL (for local models like Ollama)
+    # Optional: Custom API base URL (e.g., for Ollama or other compatible gateways)
     apiBase: "https://api.openai.com/v1"
   
   # Optional: Perplexity API for search capabilities
   perplexity:
+    # API key for Perplexity (optional)
     apiKey: ""
   
-  # Working mode
+  # Run Strix in non-interactive/headless mode by default
   nonInteractive: true
   
-  # Target for security testing (can be overridden at runtime)
+  # Default target for security testing (can be overridden at runtime)
   target: ""
   
-  # Custom instructions
+  # Custom instructions passed to Strix (free-form text)
   instructions: ""
 
 # Docker-in-Docker configuration for sandbox
 dind:
+  # Enables an isolated Docker daemon sidecar for sandbox execution
+  # Requires privileged containers and suitable cluster policies
   enabled: true
-  # Use Docker-in-Docker for isolated sandbox environment
+  # Image settings for the DinD sidecar
   image:
     repository: docker
     tag: "24-dind"
     pullPolicy: IfNotPresent
   
-  # Resources for DinD container
+  # Resources for the DinD container (adjust for your workload)
   resources:
     limits:
       cpu: 2000m
@@ -82,36 +110,55 @@ dind:
       cpu: 1000m
       memory: 2Gi
   
-  # Security context for DinD
+  # Security context for DinD (privileged is required by Docker daemon)
   securityContext:
     privileged: true
 
 service:
+  # Kubernetes Service type: ClusterIP | NodePort | LoadBalancer
   type: ClusterIP
+  # Service port exposed externally (or via Ingress)
   port: 8080
+  # Container port the Service targets
   targetPort: 8080
 
 ingress:
+  # Set to true to create an Ingress resource
   enabled: false
+  # Ingress class name (e.g., nginx, traefik). Leave empty to use the cluster default.
   className: ""
+  # Ingress annotations (controller or cert-manager specific). Examples:
+  #   kubernetes.io/ingress.class: nginx
+  #   cert-manager.io/cluster-issuer: letsencrypt-prod
   annotations: {}
+  # Host rules: list of hosts and paths routed to this service
   hosts:
     - host: "chart-example.local"
       paths:
         - path: /
+          # PathType: Prefix | Exact | ImplementationSpecific
           pathType: Prefix
+  # TLS configuration: list of secrets and their hostnames
+  # - secretName must exist or be created by cert-manager
   tls: []
 
 
 persistence:
+  # Enable PersistentVolumeClaim for storing results/workspace
   enabled: true
+  # storageClass to use (leave empty for default). Example: gp3, fast-ssd
   # storageClass: ""
+  # Access mode for the PVC
   accessMode: ReadWriteOnce
+  # Requested size for the PVC
   size: 10Gi
+  # Use an existing PVC instead of creating a new one
   # existingClaim: ""
+  # Container mount path where results are stored
   mountPath: /workspace/agent_runs
 
 resources:
+  # Resource limits and requests for the Strix container
   limits:
     cpu: 2000m
     memory: 4Gi
@@ -119,16 +166,18 @@ resources:
     cpu: 500m
     memory: 1Gi
 
-# Node selector
+# Node selector for scheduling pods onto specific nodes
 nodeSelector: {}
 
-# Tolerations
+# Tolerations to allow pods to be scheduled on tainted nodes
 tolerations: []
 
-# Affinity rules
+# Affinity/anti-affinity rules for advanced scheduling
 affinity: {}
 
 # Liveness and readiness probes
+# Enable and specify the standard Kubernetes probe fields below.
+# Note: adjust paths/ports to match your application endpoints.
 livenessProbe:
   enabled: false
   # httpGet:
@@ -145,13 +194,14 @@ readinessProbe:
   # initialDelaySeconds: 5
   # periodSeconds: 5
 
-# Additional environment variables
+# Additional environment variables for the Strix container
 extraEnv: []
+# Example:
 # - name: DEBUG
 #   value: "true"
 
-# Additional volumes
+# Additional volumes to mount into the pod (e.g., config, secrets)
 extraVolumes: []
 
-# Additional volume mounts
+# Additional volume mounts for the Strix container
 extraVolumeMounts: []

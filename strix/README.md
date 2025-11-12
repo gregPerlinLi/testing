@@ -90,6 +90,44 @@ helm install my-strix . \
 | `persistence.storageClass`  | Storage class      | `""`            |
 | `persistence.existingClaim` | Use existing PVC   | `""`            |
 
+### Ingress
+
+Expose Strix via Kubernetes Ingress to route external traffic to the Service.
+
+- ingress.enabled: Enable/disable Ingress
+- ingress.className: IngressClass name (e.g., nginx, traefik)
+- ingress.annotations: Controller/Cert-Manager annotations
+- ingress.hosts: Host/path rules (pathType usually Prefix)
+- ingress.tls: TLS secrets for HTTPS
+
+Example (NGINX + cert-manager):
+
+```yaml
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: strix.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - hosts: [strix.example.com]
+      secretName: strix-tls
+```
+
+Apply:
+
+```bash
+helm upgrade --install my-strix . -n strix --create-namespace \
+  --set strix.llm.apiKey="<your-api-key>" \
+  --set ingress.enabled=true \
+  --set ingress.className=nginx \
+  --set ingress.hosts[0].host=strix.example.com
+```
+
 ### Resources
 
 | Parameter                   | Description    | Default |
