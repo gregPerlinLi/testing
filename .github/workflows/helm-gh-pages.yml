@@ -60,9 +60,15 @@ jobs:
           gpg --list-secret-keys --keyid-format=long
           KEY_ID=$(gpg --list-secret-keys --with-colons | awk -F: '/^sec/{print $5; exit}')
           echo "KEY_ID=$KEY_ID" >> "$GITHUB_ENV"
+          # Create pubring.gpg for Helm (Helm defaults to this keyring path)
+          gpg --export > ~/.gnupg/pubring.gpg
           echo "pinentry-mode loopback" >> ~/.gnupg/gpg.conf
           echo "allow-loopback-pinentry" >> ~/.gnupg/gpg-agent.conf
           gpgconf --kill gpg-agent || true
+          # Warm up gpg-agent cache if passphrase is provided
+          if [ -n "${HELM_GPG_PASSPHRASE:-}" ]; then
+            echo test | gpg --batch --yes --pinentry-mode loopback --passphrase "$HELM_GPG_PASSPHRASE" -u "$KEY_ID" -s >/dev/null 2>&1 || true
+          fi
 
       - name: Package charts and build index
         shell: bash
@@ -88,7 +94,7 @@ jobs:
               helm lint "$chart_dir" || true
               if [ -n "${KEY_ID:-}" ]; then
                 echo "Signing with GPG key $KEY_ID"
-                helm package "$chart_dir" --destination repo --sign --key "$KEY_ID"
+                helm package "$chart_dir" --destination repo --sign --key "$KEY_ID" --keyring ~/.gnupg/pubring.gpg
               else
                 helm package "$chart_dir" --destination repo
               fi
